@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('node:path');
 const { v4: uuidv4 } = require('uuid');
 const screenshot = require('screenshot-desktop');
+const robot = require('robotjs');
+
 
 var socket;
 try {
@@ -26,6 +28,27 @@ function createWindow() {
     win.removeMenu();
     win.loadFile('index.html');
     win.webContents.openDevTools();
+
+    socket.on('mouse-move', (data) => {
+        var obj=JSON.parse(data);
+        var x=obj.x;
+        var y=obj.y;
+        robot.moveMouse(x, y);
+
+
+    });
+
+    socket.on('mouse-click', (data) => {
+        robot.mouseClick();
+
+    });
+
+    socket.on('type', (data) => {
+        var obj=JSON.parse(data);
+        var key=obj.key;
+        robot.keyTap(key);
+    });
+
 }
 
 app.whenReady().then(() => {

@@ -22,6 +22,26 @@ io.on('connection', (socket) => {
         var imgStr = data.image;
         socket.broadcast.to(room).emit('screen-data', imgStr);
     });
+
+    socket.on('mouse-move', (data) => {
+        data = JSON.parse(data);
+        var room = data.room;
+        socket.broadcast.to(room).emit('mouse-move', data);
+
+    });
+
+    socket.on('mouse-click', (data) => {
+        data = JSON.parse(data);
+        var room = data.room;
+        socket.broadcast.to(room).emit('mouse-click', data);
+    });
+
+    socket.on('type', (data) => {
+        data = JSON.parse(data);
+        var room = data.room;
+        socket.broadcast.to(room).emit('type', data);
+    });
+    
 });
 
 var server_port = process.env.YOUR_PORT || process.env.PORT || 5000;
