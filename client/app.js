@@ -69,7 +69,7 @@ app.on('window-all-closed', () => {
 
 ipcMain.on('start-share', function (event, arg) {
   console.log('start-share event received');
-  var uuid = uuidv4();
+  var uuid = "test";
   console.log('Generated UUID:', uuid);
   socket.emit('join-message', uuid);
   event.reply('uuid', uuid);
