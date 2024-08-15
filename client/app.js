@@ -28,7 +28,11 @@ function createWindow() {
 
     // Handle mouse movements
     socket.on('mouse-move', (data) => {
-        var obj = JSON.parse(data);
+        console.log("Received mouse-move data:", data);
+
+        // Ensure data is parsed only if it's a string
+        var obj = typeof data === 'string' ? JSON.parse(data) : data;
+
         var x = obj.x;
         var y = obj.y;
         win.webContents.sendInputEvent({
@@ -40,6 +44,8 @@ function createWindow() {
 
     // Handle mouse clicks
     socket.on('mouse-click', (data) => {
+        console.log("Received mouse-click data:", data);
+
         win.webContents.sendInputEvent({
             type: 'mouseDown',
             button: 'left',
@@ -54,7 +60,11 @@ function createWindow() {
 
     // Handle key presses
     socket.on('type', (data) => {
-        var obj = JSON.parse(data);
+        console.log("Received type data:", data);
+
+        // Ensure data is parsed only if it's a string
+        var obj = typeof data === 'string' ? JSON.parse(data) : data;
+
         var key = obj.key;
         win.webContents.sendInputEvent({
             type: 'keyDown',
