@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "uiohook-napi": "^1.5.4"
+  }
+}

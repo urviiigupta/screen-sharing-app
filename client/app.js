@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('node:path');
 const { v4: uuidv4 } = require('uuid');
 const screenshot = require('screenshot-desktop');
+const { UIOhook, UiohookKey } = require('uiohook-napi'); // Import uiohook-napi
 
 var socket;
 try {
@@ -26,55 +27,44 @@ function createWindow() {
     win.loadFile('index.html');
     win.webContents.openDevTools();
 
+    // Initialize UIOhook
+    const hook = new UIOhook();
+
     // Handle mouse movements
     socket.on('mouse-move', (data) => {
         console.log("Received mouse-move data:", data);
 
-        // Ensure data is parsed only if it's a string
         var obj = typeof data === 'string' ? JSON.parse(data) : data;
 
         var x = obj.x;
         var y = obj.y;
-        win.webContents.sendInputEvent({
-            type: 'mousemove',
-            x: x,
-            y: y
-        });
+        console.log("Moving mouse to coordinates:", x, y);
+
+        hook.emit('mousemove', { x, y });
     });
 
     // Handle mouse clicks
     socket.on('mouse-click', (data) => {
-        console.log("Received mouse-click data:", data);
-
-        win.webContents.sendInputEvent({
-            type: 'mouseDown',
-            button: 'left',
-            clickCount: 1
-        });
-        win.webContents.sendInputEvent({
-            type: 'mouseUp',
-            button: 'left',
-            clickCount: 1
-        });
+        console.log("Mouse click received");
+        hook.emit('mousedown', { button: 1 });
+        hook.emit('mouseup', { button: 1 });
     });
 
     // Handle key presses
     socket.on('type', (data) => {
         console.log("Received type data:", data);
 
-        // Ensure data is parsed only if it's a string
         var obj = typeof data === 'string' ? JSON.parse(data) : data;
-
         var key = obj.key;
-        win.webContents.sendInputEvent({
-            type: 'keyDown',
-            keyCode: key
-        });
-        win.webContents.sendInputEvent({
-            type: 'keyUp',
-            keyCode: key
-        });
+        console.log("Typing key:", key);
+
+        // Convert key to UiohookKey if necessary, otherwise use raw key
+        const uiohookKey = UiohookKey[key.toUpperCase()] || key;
+        hook.emit('keydown', { keycode: uiohookKey });
+        hook.emit('keyup', { keycode: uiohookKey });
     });
+
+    hook.start(); // Start the UIOhook event loop
 }
 
 app.whenReady().then(() => {
