@@ -3,54 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>screen share viewer</title>
+    <title>Screen Share Viewer</title>
 </head>
-<body style=" background : linear-gradient(45deg,#7b0909,#6771b8b8);">
+<body style="background: linear-gradient(45deg, #7b0909, #6771b8b8);">
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" crossorigin="anonymous"></script>
 
     <script>
-       window.onload = function() {
-            var room=prompt("Enter the room name");
-            if(room.trim().length==0){
-                document.write("<h1> Room name cannot be empty </h1>");
+        window.onload = function() {
+            var room = prompt("Enter the room name");
+            if (room.trim().length == 0) {
+                document.write("<h1>Room name cannot be empty</h1>");
                 return;
             }
 
-            socket=io.connect('http://localhost:5000');
-            socket.emit('join-message',room);
-            socket.on('screen-data',function(message){
-                $('img').attr('src',"data:image/png;base64,"+message);
+            var socket = io.connect('http://localhost:5000');
+            socket.emit('join-message', room);
+
+            socket.on('screen-data', function(message) {
+                $('img').attr('src', "data:image/png;base64," + message);
             });
-           $('img').mousemove(function(event){
-                var posX=$(this).offset().left;
-                var posY=$(this).offset().top;
-                var x=event.pageX-posX;
-                var y=event.pageY-posY;
 
-                var obj={"x":x,"y":y,"room":room};
-              
-                socket.emit('mouse-move',JSON.stringify(obj));
+            // Mouse Events
+            $('img').mousemove(function(event) {
+                var posX = $(this).offset().left;
+                var posY = $(this).offset().top;
+                var x = event.pageX - posX;
+                var y = event.pageY - posY;
 
-           });
+                var obj = { "x": x, "y": y, "room": room };
+                socket.emit('mouse-move', JSON.stringify(obj));
+            });
 
-              $('img').click(function(event){
-                
-                var obj={"room":room};
-                socket.emit('mouse-click',JSON.stringify(obj));
-              });
+            $('img').mousedown(function(event) {
+                var obj = { "button": event.button, "room": room };
+                socket.emit('mouse-down', JSON.stringify(obj));
+            });
 
-              $(window).bind("keyup",function(event){
-                var obj={"key":event.key,"room":room};
-                socket.emit('type',JSON.stringify(obj));
-              });
+            $('img').mouseup(function(event) {
+                var obj = { "button": event.button, "room": room };
+                socket.emit('mouse-up', JSON.stringify(obj));
+            });
 
-              
+            $('img').dblclick(function(event) {
+                var obj = { "room": room };
+                socket.emit('mouse-dblclick', JSON.stringify(obj));
+            });
 
+            $('img').contextmenu(function(event) {
+                event.preventDefault();
+                var obj = { "room": room };
+                socket.emit('mouse-right-click', JSON.stringify(obj));
+            });
+
+            // Keyboard Events
+            $(window).bind("keydown", function(event) {
+                var obj = { "key": event.key, "code": event.code, "room": room };
+                socket.emit('key-down', JSON.stringify(obj));
+            });
+
+            $(window).bind("keyup", function(event) {
+                var obj = { "key": event.key, "code": event.code, "room": room };
+                socket.emit('key-up', JSON.stringify(obj));
+            });
+
+            $(window).bind("keypress", function(event) {
+                var obj = { "key": event.key, "code": event.code, "room": room };
+                socket.emit('key-press', JSON.stringify(obj));
+            });
+
+            // Scroll Events
+            $('img').on('wheel', function(event) {
+                var obj = { "deltaX": event.originalEvent.deltaX, "deltaY": event.originalEvent.deltaY, "room": room };
+                socket.emit('mouse-wheel', JSON.stringify(obj));
+            });
         }
     </script>
 
-    <img style="width: 1920px ; height: 1080px;">
+    <img style="width: 1920px; height: 1080px;">
 </body>
 </html>
