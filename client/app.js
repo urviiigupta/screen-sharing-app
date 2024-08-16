@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('node:path');
 const { v4: uuidv4 } = require('uuid');
 const screenshot = require('screenshot-desktop');
-const { UIOhook, UiohookKey } = require('uiohook-napi'); // Import uiohook-napi
+const robot = require('robotjs'); // Import robotjs
 
 var socket;
 try {
@@ -27,9 +27,6 @@ function createWindow() {
     win.loadFile('index.html');
     win.webContents.openDevTools();
 
-    // Initialize UIOhook
-    const hook = new UIOhook();
-
     // Handle mouse movements
     socket.on('mouse-move', (data) => {
         console.log("Received mouse-move data:", data);
@@ -40,14 +37,13 @@ function createWindow() {
         var y = obj.y;
         console.log("Moving mouse to coordinates:", x, y);
 
-        hook.emit('mousemove', { x, y });
+        robot.moveMouse(x, y); // Use robotjs to move the mouse
     });
 
     // Handle mouse clicks
     socket.on('mouse-click', (data) => {
         console.log("Mouse click received");
-        hook.emit('mousedown', { button: 1 });
-        hook.emit('mouseup', { button: 1 });
+        robot.mouseClick(); // Use robotjs to click the mouse
     });
 
     // Handle key presses
@@ -58,13 +54,9 @@ function createWindow() {
         var key = obj.key;
         console.log("Typing key:", key);
 
-        // Convert key to UiohookKey if necessary, otherwise use raw key
-        const uiohookKey = UiohookKey[key.toUpperCase()] || key;
-        hook.emit('keydown', { keycode: uiohookKey });
-        hook.emit('keyup', { keycode: uiohookKey });
+        // Type the key using robotjs
+        robot.keyTap(key);
     });
-
-    hook.start(); // Start the UIOhook event loop
 }
 
 app.whenReady().then(() => {
@@ -92,7 +84,7 @@ ipcMain.on('start-share', function (event, arg) {
 
     interval = setInterval(() => {
         screenshot().then((img) => {
-            var imgStr = new Buffer(img).toString('base64');
+            var imgStr = Buffer.from(img).toString('base64');
             var obj = {};
             obj.room = uuid;
             obj.image = imgStr;
