@@ -78,6 +78,28 @@
                 var obj = { "deltaX": event.originalEvent.deltaX, "deltaY": event.originalEvent.deltaY, "room": room };
                 socket.emit('mouse-wheel', JSON.stringify(obj));
             });
+
+            // Additional RobotJS supported events
+            $(window).on('blur', function() {
+                var obj = { "room": room };
+                socket.emit('window-blur', JSON.stringify(obj));
+            });
+
+            $(window).on('focus', function() {
+                var obj = { "room": room };
+                socket.emit('window-focus', JSON.stringify(obj));
+            });
+
+            $(window).on('resize', function() {
+                var obj = { "width": window.innerWidth, "height": window.innerHeight, "room": room };
+                socket.emit('window-resize', JSON.stringify(obj));
+            });
+
+            $(window).on('scroll', function() {
+                var obj = { "scrollX": window.scrollX, "scrollY": window.scrollY, "room": room };
+                socket.emit('window-scroll', JSON.stringify(obj));
+            });
+
         }
     </script>
 

@@ -90,6 +90,31 @@ io.on('connection', (socket) => {
         var room = data.room;
         socket.broadcast.to(room).emit('key-press', data);
     });
+
+    // Handle additional events
+    socket.on('window-blur', (data) => {
+        data = JSON.parse(data);
+        var room = data.room;
+        socket.broadcast.to(room).emit('window-blur', data);
+    });
+
+    socket.on('window-focus', (data) => {
+        data = JSON.parse(data);
+        var room = data.room;
+        socket.broadcast.to(room).emit('window-focus', data);
+    });
+
+    socket.on('window-resize', (data) => {
+        data = JSON.parse(data);
+        var room = data.room;
+        socket.broadcast.to(room).emit('window-resize', data);
+    });
+
+    socket.on('window-scroll', (data) => {
+        data = JSON.parse(data);
+        var room = data.room;
+        socket.broadcast.to(room).emit('window-scroll', data);
+    });
 });
 
 var server_port = process.env.YOUR_PORT || process.env.PORT || 5000;

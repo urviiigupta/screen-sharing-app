@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const screenshot = require('screenshot-desktop');
 const robot = require('robotjs'); // Import robotjs
 
-var socket;
+let socket;
 try {
     socket = require('socket.io-client')('http://192.168.1.18:5000');
     console.log('Socket connected');
@@ -12,7 +12,7 @@ try {
     console.error('Failed to connect to server:', error);
 }
 
-var interval;
+let interval;
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -31,10 +31,8 @@ function createWindow() {
     socket.on('mouse-move', (data) => {
         console.log("Received mouse-move data:", data);
 
-        var obj = typeof data === 'string' ? JSON.parse(data) : data;
-
-        var x = obj.x;
-        var y = obj.y;
+        const obj = typeof data === 'string' ? JSON.parse(data) : data;
+        const { x, y } = obj;
         console.log("Moving mouse to coordinates:", x, y);
 
         robot.moveMouse(x, y); // Use robotjs to move the mouse
@@ -49,14 +47,14 @@ function createWindow() {
     // Handle mouse button down events
     socket.on('mouse-down', (data) => {
         console.log("Mouse down received");
-        var button = data.button === 2 ? 'right' : 'left';
+        const button = data.button === 2 ? 'right' : 'left';
         robot.mouseToggle('down', button); // Use robotjs to press the mouse button
     });
 
     // Handle mouse button up events
     socket.on('mouse-up', (data) => {
         console.log("Mouse up received");
-        var button = data.button === 2 ? 'right' : 'left';
+        const button = data.button === 2 ? 'right' : 'left';
         robot.mouseToggle('up', button); // Use robotjs to release the mouse button
     });
 
@@ -82,8 +80,8 @@ function createWindow() {
     socket.on('type', (data) => {
         console.log("Received type data:", data);
 
-        var obj = typeof data === 'string' ? JSON.parse(data) : data;
-        var key = obj.key;
+        const obj = typeof data === 'string' ? JSON.parse(data) : data;
+        const { key } = obj;
         console.log("Typing key:", key);
 
         robot.keyTap(key);
@@ -92,22 +90,43 @@ function createWindow() {
     // Handle key down events
     socket.on('key-down', (data) => {
         console.log("Key down received");
-        var key = data.key;
+        const { key } = data;
         robot.keyToggle(key, 'down'); // Use robotjs to hold the key down
     });
 
     // Handle key up events
     socket.on('key-up', (data) => {
         console.log("Key up received");
-        var key = data.key;
+        const { key } = data;
         robot.keyToggle(key, 'up'); // Use robotjs to release the key
     });
 
     // Handle key press events
     socket.on('key-press', (data) => {
         console.log("Key press received");
-        var key = data.key;
+        const { key } = data;
         robot.keyTap(key); // Use robotjs to tap the key
+    });
+
+    // Additional events from display.html
+    socket.on('window-blur', (data) => {
+        console.log("Window blur event received:", data);
+        // Handle window blur event
+    });
+
+    socket.on('window-focus', (data) => {
+        console.log("Window focus event received:", data);
+        // Handle window focus event
+    });
+
+    socket.on('window-resize', (data) => {
+        console.log("Window resize event received:", data);
+        // Handle window resize event
+    });
+
+    socket.on('window-scroll', (data) => {
+        console.log("Window scroll event received:", data);
+        // Handle window scroll event
     });
 }
 
@@ -129,17 +148,15 @@ app.on('window-all-closed', () => {
 
 ipcMain.on('start-share', function (event, arg) {
     console.log('start-share event received');
-    var uuid = "test";
+    const uuid = "test";
     console.log('Generated UUID:', uuid);
     socket.emit('join-message', uuid);
     event.reply('uuid', uuid);
 
     interval = setInterval(() => {
         screenshot().then((img) => {
-            var imgStr = Buffer.from(img).toString('base64');
-            var obj = {};
-            obj.room = uuid;
-            obj.image = imgStr;
+            const imgStr = Buffer.from(img).toString('base64');
+            const obj = { room: uuid, image: imgStr };
 
             socket.emit('screen-data', JSON.stringify(obj));
         });
